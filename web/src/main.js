@@ -122,9 +122,9 @@ async function webgpuProblem() {
 
 function showNoWebGPU(reason) {
   const el = document.getElementById("umap-plot");
-  el.innerHTML = `<div class="nogpu"><b>The map view needs WebGPU</b><br>${reason}.<br>` +
+  el.innerHTML = `<div class="nogpu"><div><b>The map view needs WebGPU</b><br>${reason}.<br>` +
     `Use a recent Chrome or Edge (desktop) or Safari 26+, with hardware acceleration on. ` +
-    `The metrics panel still works.</div>`;
+    `The metrics panel still works.</div></div>`;
 }
 
 function setFitInfo(id) {
