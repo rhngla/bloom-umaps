@@ -79,7 +79,32 @@ function categories() {
     : { category: c.classCat, colours: c.classes.map(k => k.color) };
 }
 
-function viewport(f) { return { x: f.frame_cx, y: f.frame_cy, scale: 2 / f.frame_span }; }
+// The user's zoom / pan is kept RELATIVE to each fit's default frame (umap_frame centre and
+// span), because every fit has its own coordinate system: u, v = offset of the view centre in
+// units of the frame span; z = zoom factor over the default framing (1 = whole map).
+state.rel = { u: 0, v: 0, z: 1 };
+
+function viewport(f) {
+  const r = state.rel;
+  return { x: f.frame_cx + r.u * f.frame_span, y: f.frame_cy + r.v * f.frame_span,
+           scale: (2 / f.frame_span) * r.z };
+}
+
+function onViewportState(v) {
+  if (!state.view || !state.current) return;
+  const f = state.byId[state.current.id];
+  state.rel = { u: (v.x - f.frame_cx) / f.frame_span, v: (v.y - f.frame_cy) / f.frame_span,
+                z: (v.scale * f.frame_span) / 2 };
+  state.view.update({ viewportState: v });
+  document.getElementById("reset-view").disabled = Math.abs(state.rel.z - 1) < 1e-3 &&
+    Math.abs(state.rel.u) < 1e-3 && Math.abs(state.rel.v) < 1e-3;
+}
+
+function resetView() {
+  state.rel = { u: 0, v: 0, z: 1 };
+  if (state.view && state.current) state.view.update({ viewportState: viewport(state.byId[state.current.id]) });
+  document.getElementById("reset-view").disabled = true;
+}
 
 class CellTooltip {
   constructor(target, props) { this.el = document.createElement("div"); this.el.className = "cell-tip"; target.appendChild(this.el); this.update(props); }
@@ -149,7 +174,7 @@ async function showFit(id) {
       ...props, ...viewSize(), config: { autoLabelEnabled: false, colorScheme: "light" },
       theme: { statusBar: false },
       querySelection, customTooltip: { class: CellTooltip, props: {} },
-      onViewportState: v => state.view && state.view.update({ viewportState: v }),
+      onViewportState,
       onTooltip: v => state.view && state.view.update({ tooltip: v }),
     });
   } else {
@@ -206,7 +231,8 @@ async function prefetchAll() {
   let k = 0, done = 0;
   const worker = async () => { while (k < ids.length) { const id = ids[k++]; try { await loadFit(id); } catch (e) { console.error(e); } done++; } };
   await Promise.all(Array.from({ length: 6 }, worker));
-  status.textContent = `hover a cell to see its subclass and class \u00b7 scroll to zoom, drag to pan \u00b7 ${done}/${ids.length} maps loaded`;
+  status.textContent = `hover a cell to see its subclass and class \u00b7 scroll to zoom, drag to pan ` +
+    `(zoom and relative position are kept across fits) \u00b7 ${done}/${ids.length} maps loaded`;
 }
 
 async function main() {
@@ -239,6 +265,7 @@ async function main() {
   await showFit(best.fit_id);
 
   document.getElementById("xsel").addEventListener("change", e => { state.xcol = e.target.value; drawMetrics(); });
+  document.getElementById("reset-view").addEventListener("click", resetView);
   document.getElementById("csel").addEventListener("change", e => {
     state.colourBy = e.target.value; const { category, colours } = categories();
     if (state.view && state.current)

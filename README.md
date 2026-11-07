@@ -50,7 +50,9 @@ Interactive explorer: **https://rhngla.github.io/bloom-umaps/** (GitHub Pages, `
 Left, every fit's NMI against within-subclass variance (Observable Plot): hover previews a
 fit, click pins it. Right, the selected UMAP of all 15,750 cells (Apple
 [Embedding Atlas](https://apple.github.io/embedding-atlas/) `EmbeddingView`), coloured by AIT33
-subclass or class, with a per-cell tooltip.
+subclass or class, with a per-cell tooltip. Zoom and pan are kept across fits, relative to
+each fit's default frame (fits do not share a coordinate system); "reset view" returns to the
+whole map.
 
 * Needs a browser with WebGPU and the `shader-f16` feature (recent desktop Chrome / Edge,
   Safari 26+). Embedding Atlas has no WebGL fallback; other browsers get a message in the
