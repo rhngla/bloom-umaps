@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloom UMAP parameter explorer</title>
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header>
+  <h1>Bloom UMAP parameter explorer</h1>
+  <p class="sub" id="meta-line">Loading&hellip;</p>
+</header>
+<main>
+  <section class="panel" id="left">
+    <div class="controls">
+      <label>x-axis
+        <select id="xsel">
+          <option value="v_span">within-subclass variance / displayed span&sup2;</option>
+          <option value="v_total">within-subclass variance / total variance</option>
+        </select>
+      </label>
+      <span class="hint">hover a point to preview &middot; click to pin</span>
+    </div>
+    <div id="metrics-plot"></div>
+    <p class="key">Black outline = Pareto front (no other fit has both higher NMI and higher variance)
+      &middot; red ring = pinned fit &middot; bars = sd over 3 k-means seeds</p>
+  </section>
+  <section class="panel" id="right">
+    <div class="controls">
+      <label>colour by
+        <select id="csel">
+          <option value="subclass">AIT33 subclass (315)</option>
+          <option value="klass">AIT33 class (41)</option>
+        </select>
+      </label>
+      <span id="fit-info" class="fit-info"></span>
+    </div>
+    <div id="umap-plot"></div>
+    <p class="key" id="status">hover a cell to see its subclass and class &middot; scroll to zoom, drag to pan</p>
+  </section>
+</main>
+<footer id="about"></footer>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

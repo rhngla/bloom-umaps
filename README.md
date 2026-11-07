@@ -44,8 +44,34 @@ each worker's BLAS / OpenMP / numba threads. Size `--jobs` from the pilot's peak
     percentile ranges). This is the spread a viewer sees, since every panel is autoscaled.
   * `v_total` = mean over subclasses of trace(cov_c) / trace(cov_all).
 
+## Dashboard
+
+Interactive explorer: **https://rhngla.github.io/bloom-umaps/** (GitHub Pages, `main:/docs`).
+Left, every fit's NMI against within-subclass variance (Observable Plot): hover previews a
+fit, click pins it. Right, the selected UMAP of all 15,750 cells (Apple
+[Embedding Atlas](https://apple.github.io/embedding-atlas/) `EmbeddingView`), coloured by AIT33
+subclass or class, with a per-cell tooltip.
+
+* Needs a browser with WebGPU and the `shader-f16` feature (recent desktop Chrome / Edge,
+  Safari 26+). Embedding Atlas has no WebGL fallback; other browsers get a message in the
+  map panel and the metrics panel still works.
+* Labels are the metadata's own `AIT33_subclass` / `AIT33_class` (128 cells carry a class that
+  is not their subclass's parent; the tooltip flags them).
+* EmbeddingView colours by a Uint8 category (max 256), so the 59 subclass pairs with the
+  closest taxonomy colours (CIE76 dE, cross-class pairs only) share a colour; the list is in
+  `results/dashboard_subclass_colour_merges.csv`. Tooltips always name the exact subclass.
+* Only 2-D UMAP coordinates (uint16, error <= 1/131070 of a map's extent) and labels are
+  published; the Bloom embedding itself is not.
+
+Rebuild after changing the sweep or metrics:
+
+    python scripts/04_export_dashboard.py          # docs/data
+    cd web && npm install && npm run build         # docs/index.html + docs/assets (Node >= 20)
+
 ## Storage
 
-All stored embeddings / coordinates live on nvme only: `work/` is a gitignored symlink to
+The full-precision sweep fits live on nvme only (the one exception is the dashboard export:
+`docs/data` holds uint16-quantised 2-D coordinates and labels, committed so Pages can serve
+them). `work/` is a gitignored symlink to
 `/opt/dlami/nvme/work/bloom-umaps` (instance store: survives reboot, wiped on stop; covered
 by the nightly S3 sync). Git holds code, the manifest and the metrics table.

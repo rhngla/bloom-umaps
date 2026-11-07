@@ -46,3 +46,15 @@ def test_variance_collapse_goes_to_zero():
 def test_v_total_bounded():
     Y, lab = blobs(sd=5.0)
     assert 0 < metrics.variance_metrics(Y, lab)["v_total"] <= 1
+
+
+def test_merge_to_slots_fits_and_prefers_cross_group():
+    from bloom_umaps.colours import merge_to_slots
+
+    rng = np.random.default_rng(0)
+    cols = ["#" + "".join(f"{v:02x}" for v in rng.integers(0, 256, 3)) for _ in range(300)]
+    groups = [i % 7 for i in range(300)]
+    slot_of, slot_cols, pairs = merge_to_slots(cols, groups, max_slots=256)
+    assert len(slot_cols) == 256 and max(slot_of) == 255 and len(pairs) == 44
+    assert all(groups[i] != groups[j] for i, j, _ in pairs)
+    assert len({i for p in pairs for i in p[:2]}) == 88  # each item in at most one pair
