@@ -80,7 +80,7 @@ def nmi_vs_variance(m: pd.DataFrame, out, xcol: str = "v_span") -> list[str]:
     }[xcol]
 
     fig = plt.figure(figsize=(180 * MM, 120 * MM))
-    gs = fig.add_gridspec(2, 3, height_ratios=[1.25, 1], hspace=0.45, wspace=0.08)
+    gs = fig.add_gridspec(2, 3, height_ratios=[1.25, 1], hspace=0.5, wspace=0.08)
     ax = fig.add_subplot(gs[0, :])
     for i, r in m.iterrows():
         ax.errorbar(
@@ -98,13 +98,14 @@ def nmi_vs_variance(m: pd.DataFrame, out, xcol: str = "v_span") -> list[str]:
         )
     order = np.flatnonzero(front)[np.argsort(x[front])]
     for k, i in enumerate(order, 1):
+        up = k % 2 == 1  # alternate above / below so near-coincident neighbours stay legible
         ax.annotate(
             str(k),
             (x[i], y[i]),
-            xytext=(0, 5),
+            xytext=(0, 5 if up else -6),
             textcoords="offset points",
             ha="center",
-            va="bottom",
+            va="bottom" if up else "top",
             fontsize=6,
             color="0.15",
         )
@@ -158,13 +159,32 @@ def nmi_vs_variance(m: pd.DataFrame, out, xcol: str = "v_span") -> list[str]:
             a.set_ylabel("Seeded k-means NMI")
         else:
             a.tick_params(labelleft=False)
-    fig.text(
-        axs[0].get_position().x0,
-        axs[0].get_position().y1 + 0.075,
-        "One line per n_neighbors, joining fits in order of increasing min_dist; "
-        "large outlined marker = min_dist 0.2",
-        fontsize=7,
-        color="0.25",
+    axs[-1].legend(
+        handles=[
+            Line2D(
+                [],
+                [],
+                color="0.4",
+                lw=0.9,
+                marker="^",
+                ms=3,
+                label="one n_neighbors, min_dist increasing",
+            ),
+            Line2D(
+                [],
+                [],
+                ls="none",
+                marker="^",
+                ms=6,
+                mfc="0.6",
+                mec="k",
+                mew=0.8,
+                label="min_dist 0.2 (line start)",
+            ),
+        ],
+        loc="lower left",
+        fontsize=6,
+        handletextpad=0.4,
     )
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
