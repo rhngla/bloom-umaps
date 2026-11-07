@@ -162,13 +162,7 @@ def nmi_vs_variance(m: pd.DataFrame, out, xcol: str = "v_span") -> list[str]:
     axs[-1].legend(
         handles=[
             Line2D(
-                [],
-                [],
-                color="0.4",
-                lw=0.9,
-                marker="^",
-                ms=3,
-                label="one n_neighbors, min_dist increasing",
+                [], [], color="0.4", lw=0.9, marker="^", ms=3, label="min_dist \u2191 along line"
             ),
             Line2D(
                 [],
@@ -179,7 +173,7 @@ def nmi_vs_variance(m: pd.DataFrame, out, xcol: str = "v_span") -> list[str]:
                 mfc="0.6",
                 mec="k",
                 mew=0.8,
-                label="min_dist 0.2 (line start)",
+                label="min_dist 0.2",
             ),
         ],
         loc="lower left",
