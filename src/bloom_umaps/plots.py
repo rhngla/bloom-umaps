@@ -96,21 +96,23 @@ def nmi_vs_variance(m: pd.DataFrame, out, xcol: str = "v_span") -> list[str]:
             linewidth=0.9,
             zorder=3,
         )
-    for i in np.flatnonzero(front):
-        r = m.loc[i]
+    order = np.flatnonzero(front)[np.argsort(x[front])]
+    for k, i in enumerate(order, 1):
         ax.annotate(
-            f"nn{r.n_neighbors} md{r.min_dist:g} sp{r.spread:g}",
-            (r[xcol], r.nmi_mean),
-            xytext=(4, 3),
+            str(k),
+            (x[i], y[i]),
+            xytext=(0, 5),
             textcoords="offset points",
+            ha="center",
+            va="bottom",
             fontsize=6,
-            color="0.25",
+            color="0.15",
         )
     ax.set_xlabel(xlab)
     ax.set_ylabel("Seeded k-means NMI\n(mean \u00b1 sd, 3 seeds)")
     ax.set_title(
-        f"All {len(m)} UMAP fits; outlined = Pareto front "
-        "(no fit has both higher NMI and higher variance)",
+        f"All {len(m)} UMAP fits; outlined and numbered = Pareto front "
+        "(no other fit has both higher NMI and higher variance)",
         loc="left",
     )
     ax.margins(0.04)
@@ -122,7 +124,14 @@ def nmi_vs_variance(m: pd.DataFrame, out, xcol: str = "v_span") -> list[str]:
         Line2D([], [], ls="none", marker=mk, ms=5, color="0.4", label=f"spread {sp:g}")
         for sp, mk in SPREAD_MARKER.items()
     ]
-    ax.legend(handles=h, ncol=2, loc="upper right", handletextpad=0.3, columnspacing=1.0)
+    ax.legend(
+        handles=h,
+        ncol=1,
+        loc="upper left",
+        bbox_to_anchor=(1.01, 1.0),
+        handletextpad=0.3,
+        borderaxespad=0,
+    )
 
     axs = [fig.add_subplot(gs[1, j]) for j in range(3)]
     for j, (sp, g) in enumerate(m.groupby("spread")):
@@ -132,28 +141,34 @@ def nmi_vs_variance(m: pd.DataFrame, out, xcol: str = "v_span") -> list[str]:
             a.plot(
                 gg[xcol], gg.nmi_mean, "-", color=col[nn], lw=0.9, marker=SPREAD_MARKER[sp], ms=3
             )
-            a.annotate(
-                f"{gg.min_dist.iloc[0]:g}",
-                (gg[xcol].iloc[0], gg.nmi_mean.iloc[0]),
-                xytext=(-3, 0),
-                textcoords="offset points",
-                ha="right",
-                va="center",
-                fontsize=6,
-                color=col[nn],
+            a.plot(
+                gg[xcol].iloc[0],
+                gg.nmi_mean.iloc[0],
+                ls="none",
+                marker=SPREAD_MARKER[sp],
+                ms=6,
+                mfc=col[nn],
+                mec="k",
+                mew=0.8,
             )
-        a.set_title(
-            f"spread {sp:g}: line runs min_dist 0.2 \u2192 {g.min_dist.max():g}", loc="left"
-        )
+        a.set_title(f"spread {sp:g} (min_dist 0.2\u2013{g.min_dist.max():g})", loc="left")
         a.set_xlim(ax.get_xlim()), a.set_ylim(ax.get_ylim())
         a.set_xlabel(xlab if j == 1 else "")
         if j == 0:
             a.set_ylabel("Seeded k-means NMI")
         else:
             a.tick_params(labelleft=False)
+    fig.text(
+        axs[0].get_position().x0,
+        axs[0].get_position().y1 + 0.075,
+        "One line per n_neighbors, joining fits in order of increasing min_dist; "
+        "large outlined marker = min_dist 0.2",
+        fontsize=7,
+        color="0.25",
+    )
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
-    return m.loc[front, "fit_id"].tolist()
+    return m.loc[order, "fit_id"].tolist()
 
 
 def thumbnails(

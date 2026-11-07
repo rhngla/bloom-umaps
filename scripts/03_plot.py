@@ -19,15 +19,15 @@ print("pareto (v_total):", front_t)
 tax = pd.read_csv(DATA / "ait33_subclass_taxonomy.csv")
 colours = dict(zip(tax.subclass_id_label, tax.subclass_color, strict=False))
 labels = io.read_labels()
-f = m.set_index("fit_id").loc[front].sort_values("v_span")
+f = m.set_index("fit_id").loc[front]  # already ordered by v_span, as numbered in the plot
 fits = [
     (
         fid,
         sweep.read_fit(fid),
-        f"nn {r.n_neighbors}, md {r.min_dist:g}, sp {r.spread:g}\n"
+        f"{k}: nn {r.n_neighbors}, md {r.min_dist:g}, sp {r.spread:g}\n"
         f"NMI {r.nmi_mean:.3f}, V {r.v_span:.4f}",
     )
-    for fid, r in f.iterrows()
+    for k, (fid, r) in enumerate(f.iterrows(), 1)
 ]
 plots.thumbnails(fits, labels, colours, RESULTS / "pareto_thumbnails.png")
 print("wrote", RESULTS / "pareto_thumbnails.png")
